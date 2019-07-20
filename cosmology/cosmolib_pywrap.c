@@ -584,7 +584,7 @@ PyCosmoObject_V(struct PyCosmoObject* self, PyObject* args) {
 
 
 
-// Inverse critical density
+// Inverse critical surface density for lensing 
 static PyObject*
 PyCosmoObject_scinv(struct PyCosmoObject* self, PyObject* args) {
     double zl, zs;
@@ -671,6 +671,92 @@ PyCosmoObject_scinv_2vec(struct PyCosmoObject* self, PyObject* args) {
 }
 
 
+// Inverse critical surface density for lensing 
+static PyObject*
+PyCosmoObject_dcinv(struct PyCosmoObject* self, PyObject* args) {
+    double zl, zs;
+    double d;
+
+    if (!PyArg_ParseTuple(args, (char*)"dd", &zl, &zs)) {
+        return NULL;
+    }
+
+    d = dcinv(self->cosmo, zl, zs);
+    return PyFloat_FromDouble(d);
+
+}
+
+static PyObject*
+PyCosmoObject_dcinv_vec1(struct PyCosmoObject* self, PyObject* args) {
+    PyObject* zlObj=NULL, *resObj=NULL;;
+    double *zl, zs, *res;
+    npy_intp n, i;
+
+    if (!PyArg_ParseTuple(args, (char*)"Od", &zlObj, &zs)) {
+        return NULL;
+    }
+
+    n = PyArray_SIZE(zlObj);
+    zl = (double* )PyArray_DATA(zlObj);
+
+    resObj = PyArray_ZEROS(1, &n, NPY_FLOAT64, 0);
+    res = (double* )PyArray_DATA(resObj);
+
+    for (i=0; i<n; i++) {
+        res[i] = dcinv(self->cosmo, zl[i], zs); 
+    }
+
+    return resObj;
+
+}
+
+static PyObject*
+PyCosmoObject_dcinv_vec2(struct PyCosmoObject* self, PyObject* args) {
+    PyObject* zsObj=NULL, *resObj=NULL;;
+    double zl, *zs, *res;
+    npy_intp n, i;
+
+    if (!PyArg_ParseTuple(args, (char*)"dO", &zl, &zsObj)) {
+        return NULL;
+    }
+
+    n = PyArray_SIZE(zsObj);
+    zs = (double* )PyArray_DATA(zsObj);
+
+    resObj = PyArray_ZEROS(1, &n, NPY_FLOAT64, 0);
+    res = (double* )PyArray_DATA(resObj);
+
+    for (i=0; i<n; i++) {
+        res[i] = dcinv(self->cosmo, zl, zs[i]); 
+    }
+
+    return resObj;
+}
+
+static PyObject*
+PyCosmoObject_dcinv_2vec(struct PyCosmoObject* self, PyObject* args) {
+    PyObject* zsObj, *zlObj=NULL, *resObj=NULL;
+    double *zl, *zs, *res;
+    npy_intp n, i;
+
+    if (!PyArg_ParseTuple(args, (char*)"OO", &zlObj, &zsObj)) {
+        return NULL;
+    }
+
+    n = PyArray_SIZE(zlObj);
+    zl = (double* )PyArray_DATA(zlObj);
+    zs = (double* )PyArray_DATA(zsObj);
+
+    resObj = PyArray_ZEROS(1, &n, NPY_FLOAT64, 0);
+    res = (double* )PyArray_DATA(resObj);
+
+    for (i=0; i<n; i++) {
+        res[i] = dcinv(self->cosmo, zl[i], zs[i]); 
+    }
+
+    return resObj;
+}
+
 
 
 static PyMethodDef PyCosmoObject_methods[] = {
@@ -701,10 +787,14 @@ static PyMethodDef PyCosmoObject_methods[] = {
     {"dV",                  (PyCFunction)PyCosmoObject_dV,                  METH_VARARGS, "dV(z)\n\nComoving volume element at redshift z"},
     {"dV_vec",              (PyCFunction)PyCosmoObject_dV_vec,              METH_VARARGS, "dV(z)\n\nComoving volume element at redshift z(array)"},
     {"V",                   (PyCFunction)PyCosmoObject_V,                   METH_VARARGS, "V(z)\n\nComoving volume between zmin and zmax"},
-    {"scinv",               (PyCFunction)PyCosmoObject_scinv,               METH_VARARGS, "scinv(zl,zs)\n\nInverse critical density distance between zl and zs"},
-    {"scinv_vec1",          (PyCFunction)PyCosmoObject_scinv_vec1,          METH_VARARGS, "scinv_vec1(zl,zs)\n\nInverse critical density distance between zl(array) and zs"},
-    {"scinv_vec2",          (PyCFunction)PyCosmoObject_scinv_vec2,          METH_VARARGS, "scinv_vec2(zl,zs)\n\nInverse critical density distance between zl and zs(array)"},
-    {"scinv_2vec",          (PyCFunction)PyCosmoObject_scinv_2vec,          METH_VARARGS, "scinv_2vec(zl,zs)\n\nInverse critical density distance between zl and zs both arrays"},
+    {"scinv",               (PyCFunction)PyCosmoObject_scinv,               METH_VARARGS, "scinv(zl,zs)\n\nInverse critical surface density distance between zl and zs"},
+    {"scinv_vec1",          (PyCFunction)PyCosmoObject_scinv_vec1,          METH_VARARGS, "scinv_vec1(zl,zs)\n\nInverse critical surface density distance between zl(array) and zs"},
+    {"scinv_vec2",          (PyCFunction)PyCosmoObject_scinv_vec2,          METH_VARARGS, "scinv_vec2(zl,zs)\n\nInverse critical surface density distance between zl and zs(array)"},
+    {"scinv_2vec",          (PyCFunction)PyCosmoObject_scinv_2vec,          METH_VARARGS, "scinv_2vec(zl,zs)\n\nInverse critical surface density distance between zl and zs both arrays"},
+    {"dcinv",               (PyCFunction)PyCosmoObject_dcinv,               METH_VARARGS, "dcinv(zl,zs)\n\nInverse critical density contrast between zl and zs"},
+    {"dcinv_vec1",          (PyCFunction)PyCosmoObject_dcinv_vec1,          METH_VARARGS, "dcinv_vec1(zl,zs)\n\nInverse critical density contrast between zl(array) and zs"},
+    {"dcinv_vec2",          (PyCFunction)PyCosmoObject_dcinv_vec2,          METH_VARARGS, "dcinv_vec2(zl,zs)\n\nInverse critical density contrast between zl and zs(array)"},
+    {"dcinv_2vec",          (PyCFunction)PyCosmoObject_dcinv_2vec,          METH_VARARGS, "dcinv_2vec(zl,zs)\n\nInverse critical density contrast between zl and zs both arrays"},
 
     {NULL}  /* Sentinel */
 };
@@ -759,8 +849,8 @@ static PyTypeObject PyCosmoType = {
     //0,     /* tp_init */
     (initproc)PyCosmoObject_init,      /* tp_init */
     0,                         /* tp_alloc */
-    //PyCosmoObject_new,                 /* tp_new */
-    PyType_GenericNew,                 /* tp_new */
+    //PyCosmoObject_new,       /* tp_new */
+    PyType_GenericNew,         /* tp_new */
 };
 
 

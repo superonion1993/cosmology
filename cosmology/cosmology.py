@@ -98,7 +98,7 @@ class Cosmo:
                 self.extract_parms(omega_m,omega_l,omega_k,flat)
 
         if h is not None:
-            H0 = 100.0*h
+            H0 = 100.0*h #in unit of km/s/Mpc
 
         DH = _CLIGHT/H0
 
@@ -121,6 +121,9 @@ class Cosmo:
         return self._cosmo.omega_l()
     def omega_k(self):
         return self._cosmo.omega_k()
+
+    def Hz(self,z):
+        return self.H0()/self.Ez_inverse(z)
 
     def Dc(self, zmin, zmax):
         """
@@ -386,8 +389,47 @@ class Cosmo:
 
         return scinv
 
+    def deltacritinv(self, zl, zs):
+        """
+        Calculate the inverse critical density contrast for the lens and source redshifts
 
 
+        Parameters
+        ----------
+        zl, zs: scalars or arrays
+            The following combinations are supported
+                1) Two scalars
+                2) zmin a scalar and zmax an array
+                3) zmin an array and zmax a scalar
+                4) Both arrays of the same length.
+
+        """
+
+        if isscalar(zl) and isscalar(zs):
+            # two scalars of any kind.
+            dcinv = self._cosmo.dcinv(zl, zs)
+
+        elif not isscalar(zl) and isscalar(zs):
+            # scalar for zl, array for zs
+            zl = numpy.array(zl, dtype='f8', copy=False, order='C')
+            dcinv=self._cosmo.dcinv_vec1(zl, zs)
+
+        elif isscalar(zl) and not isscalar(zs):
+            # array for zl, scalar zs
+            zs = numpy.array(zs, dtype='f8', copy=False, order='C')
+            dcinv=self._cosmo.dcinv_vec2( zl, zs)
+
+        elif not isscalar(zl) and not isscalar(zs):
+            # both arrays: must be same length
+            zl = numpy.array(zl, dtype='f8', copy=False, order='C')
+            zs = numpy.array(zs, dtype='f8', copy=False, order='C')
+            if len(zl) != len(zs):
+                raise ValueError("If zl and zs are arrays, they must be same length")
+            dcinv=self._cosmo.dcinv_2vec(zl, zs)
+        else:
+            raise ValueError("zl,zs should be two scalars, zl scalar zs array, or both arrays")
+
+        return dcinv
 
 
     def Ez_inverse(self, z):

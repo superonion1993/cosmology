@@ -55,6 +55,9 @@ double V(struct cosmo* c, double zmin, double zmax);
 // inverse critical density for lensing
 double scinv(struct cosmo* c, double zl, double zs);
 
+// inverse critical fractional density contrast 
+double dcinv(struct cosmo* c, double zl, double zs);
+
 // generate gauss-legendre abcissa and weights
 void gauleg(double x1, double x2, int npts, double* x, double* w);
 

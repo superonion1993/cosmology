@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "cosmolib.h"
+#include <stdio.h>
 
 
 struct cosmo* cosmo_new(
@@ -119,6 +120,7 @@ double V(struct cosmo* c, double zmin, double zmax) {
 
 
 // inverse critical density for lensing
+// in unit of (M_sun/pc^2)^-1
 double scinv(struct cosmo* c, double zl, double zs) {
     double dl, ds, dls;
 
@@ -132,6 +134,23 @@ double scinv(struct cosmo* c, double zl, double zs) {
     return dls*dl/ds*FOUR_PI_G_OVER_C_SQUARED;
 }
 
+// inverse critical fractional density contrast 
+// (delta_cr^-1)
+double dcinv(struct cosmo* c, double zl, double zs) {
+    double xl, xs, xls;
+    double frac;
+
+    if (zs <= zl) {
+        return 0.0;
+    }
+
+    xl = Dc(c, 0.0, zl);
+    xs = Dc(c, 0.0, zs);
+    xls = Dc(c, zl, zs);
+
+    frac= 3./2./c->DH*c->omega_m*(1+zl)*ez_inverse(c,zl);
+    return xls*xl/xs*frac;
+}
 
 
 double ez_inverse(struct cosmo* c, double z) {
