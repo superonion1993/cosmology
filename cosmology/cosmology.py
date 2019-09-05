@@ -6,6 +6,7 @@ from . import _cosmolib
 
 
 _CLIGHT=2.99792458e5
+_FOUR_PI_G_OVER_C_SQUARED=6.0150504541630152e-07
 
 class Cosmo:
     """
@@ -102,14 +103,19 @@ class Cosmo:
 
         DH = _CLIGHT/H0
 
-        self._cosmo =  _cosmolib.cosmo(DH, flat, omega_m, omega_l, omega_k)
+        self._cosmo =   _cosmolib.cosmo(DH, flat, omega_m, omega_l, omega_k)
 
-        self.Distmod = self.distmod
+        self.Distmod=   self.distmod
 
-        self._H0 = H0
+        self._H0    =   H0
+
+        self._rho0  =  1.5*H0**2./_FOUR_PI_G_OVER_C_SQUARED
 
     def H0(self):
         return copy.deepcopy(self._H0)
+    
+    def Hz(self,z):
+        return self.H0()/self.Ez_inverse(z)
 
     def DH(self):
         return self._cosmo.DH()
@@ -122,8 +128,17 @@ class Cosmo:
     def omega_k(self):
         return self._cosmo.omega_k()
 
-    def Hz(self,z):
-        return self.H0()/self.Ez_inverse(z)
+    def rho0(self):
+        return copy.deepcopy(self._rho0)
+    
+    def rho_m(self,z):
+        #matter density as function of redshift
+        #in unit of M_sun/Mpc^3
+        return self.rho0()*self.omega_m()/(1+z)**3.*_CLIGHT
+    
+    def rho_k(self,z):
+        #in unit of M_sun/Mpc^3
+        return self._rho0*self.omega_k/(1+z)**2.*_CLIGHT
 
     def Dc(self, zmin, zmax):
         """

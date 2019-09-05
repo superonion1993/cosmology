@@ -17,6 +17,3 @@ setup(name="cosmology",
       ext_modules=[ext],
       include_dirs=include_dirs)
 
-
-
-

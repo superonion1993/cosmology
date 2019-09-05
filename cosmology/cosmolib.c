@@ -1,3 +1,5 @@
+// code inherited from esheldon/cosmology
+
 #include <math.h>
 #include <stdlib.h>
 #include "cosmolib.h"

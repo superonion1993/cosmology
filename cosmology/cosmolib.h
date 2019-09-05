@@ -1,15 +1,19 @@
+// code inherited from esheldom/cosmology
 #ifndef __COSMOLIB_H
 #define __COSMOLIB_H
 
 #define NPTS 5
 #define VNPTS 10
+//in Unit of MPC/M_sun
 #define FOUR_PI_G_OVER_C_SQUARED 6.0150504541630152e-07
+//in Unit of km/s
 #define CLIGHT 2.99792458e5
 
 struct cosmo {
     int flat; // is this a flat cosmology?
 
     double DH; // hubble distance
+    //Do not consider the radiation component
     double omega_m; // density parameters rho/rhocrit
     double omega_l;
     double omega_k;
@@ -32,6 +36,7 @@ struct cosmo* cosmo_new(
         double omega_k);
 
 double ez_inverse(struct cosmo* c, double z);
+
 double ez_inverse_integral(struct cosmo* c, double zmin, double zmax);
 
 /* comoving distance in Mpc */
@@ -60,6 +65,5 @@ double dcinv(struct cosmo* c, double zl, double zs);
 
 // generate gauss-legendre abcissa and weights
 void gauleg(double x1, double x2, int npts, double* x, double* w);
-
 
 #endif
