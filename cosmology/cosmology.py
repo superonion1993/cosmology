@@ -87,8 +87,7 @@ class Cosmo:
         Early 2011: Complete Re-write without using SWIG.
     """
 
-    def __init__(self, 
-                 H0=100.0,
+    def __init__(self,
                  h=None, # can send either h or H0
                  flat=True,
                  omega_m=0.3, 
@@ -98,6 +97,7 @@ class Cosmo:
         flat, omega_m, omega_l, omega_k = \
                 self.extract_parms(omega_m,omega_l,omega_k,flat)
 
+        H0  =   100.0
         if h is not None:
             H0 = 100.0*h #in unit of km/s/Mpc
 
