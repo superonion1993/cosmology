@@ -44,9 +44,8 @@ class Cosmo:
 
     Optional Construction Keywords
     ------------------------------
-    H0, h: float, optional
-        Hubble constant in units of m/s/Mpc.  You can send either H0 or little h.
-        Default is H0=100
+    h: float, optional
+        reduced Hubble constant h
     flat: boolean, optional
         Force a flat geometry.  Default is True
     omega_m: float, optional
@@ -109,7 +108,8 @@ class Cosmo:
 
         self._H0    =   H0
 
-        self._rho0  =  1.5*H0**2./_FOUR_PI_G_OVER_C_SQUARED
+        self._rho0  =   1.5*H0**2./_FOUR_PI_G_OVER_C_SQUARED/_CLIGHT**2.
+
 
     def H0(self):
         return copy.deepcopy(self._H0)
@@ -134,11 +134,10 @@ class Cosmo:
     def rho_m(self,z):
         #matter density as function of redshift
         #in unit of M_sun/Mpc^3
-        return self.rho0()*self.omega_m()/(1+z)**3.*_CLIGHT
-    
+        return self.rho0()*self.omega_m()/(1+z)**3.    
     def rho_k(self,z):
         #in unit of M_sun/Mpc^3
-        return self._rho0*self.omega_k/(1+z)**2.*_CLIGHT
+        return self._rho0*self.omega_k/(1+z)**2.
 
     def Dc(self, zmin, zmax):
         """
