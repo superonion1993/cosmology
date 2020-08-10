@@ -4,13 +4,23 @@ import numpy
 from numpy import isscalar, linspace
 from . import _cosmolib
 
-
-_CLIGHT=2.99792458e5
-_FOUR_PI_G_OVER_C_SQUARED=6.0150504541630152e-07
+C_LIGHT=2.99792458e8        # m/s
+GNEWTON=6.67428e-11         # m^3/kg/s^2
+KG_PER_SUN=1.98892e30       # kg/M_solar
+M_PER_PARSEC=3.08568025e16  # m/pc
+def four_pi_G_over_c_squared():
+    # We want it return 4piG/c^2 in unit of Mpc/M_solar
+    # in unit of m/kg
+    fourpiGoverc2 = 4.0*numpy.pi*GNEWTON/(C_LIGHT**2)
+    # in unit of pc/M_solar
+    fourpiGoverc2 *= KG_PER_SUN/M_PER_PARSEC
+    # in unit of Mpc/M_solar
+    fourpiGoverc2 /= 1.e6
+    return fourpiGoverc2
 
 class Cosmo:
     """
-    A Class for calculating  cosmological distances.  
+    A Class for calculating  cosmological distances.
 
     This is an implementation of Hogg, D., Distance measures in cosmology,
     astro-ph/9905116 The python class is a wrapper for fast C routines.
@@ -63,7 +73,7 @@ class Cosmo:
         c=cosmology.Cosmo()
 
         # comoving distance to z=0.5
-        c.Dc(0.0, 0.5) 
+        c.Dc(0.0, 0.5)
 
         # angular diameter distance between z=0.5 and z=0.9
         c.Da(0.5, 0.9)
@@ -89,7 +99,7 @@ class Cosmo:
     def __init__(self,
                  h=None, # can send either h or H0
                  flat=True,
-                 omega_m=0.3, 
+                 omega_m=0.3,
                  omega_l=0.7,
                  omega_k=None):
 
@@ -100,7 +110,7 @@ class Cosmo:
         if h is not None:
             H0 = 100.0*h #in unit of km/s/Mpc
 
-        DH = _CLIGHT/H0
+        DH = C_LIGHT/1e3/H0
 
         self._cosmo =   _cosmolib.cosmo(DH, flat, omega_m, omega_l, omega_k)
 
@@ -108,12 +118,12 @@ class Cosmo:
 
         self._H0    =   H0
 
-        self._rho0  =   1.5*H0**2./_FOUR_PI_G_OVER_C_SQUARED/_CLIGHT**2.
+        self._rho0  =   1.5/four_pi_G_over_c_squared()/(DH)**2.
 
 
     def H0(self):
         return copy.deepcopy(self._H0)
-    
+
     def Hz(self,z):
         return self.H0()/self.Ez_inverse(z)
 
@@ -130,14 +140,14 @@ class Cosmo:
 
     def rho0(self):
         return copy.deepcopy(self._rho0)
-    
+
     def rho_m(self,z):
         #matter density as function of redshift
         #in unit of M_sun/Mpc^3
-        return self.rho0()*self.omega_m()/(1+z)**3.    
+        return self.rho0()*self.omega_m()*(1+z)**3.
     def rho_k(self,z):
         #in unit of M_sun/Mpc^3
-        return self._rho0*self.omega_k/(1+z)**2.
+        return self._rho0*self.omega_k*(1+z)**2.
 
     def Dc(self, zmin, zmax):
         """
@@ -335,8 +345,8 @@ class Cosmo:
         """
         Calculate the comoving volume between zmin and zmax.
 
-        Note this function previously returned the volume per steradian.  To
-        get the old behavior divide by 4*pi
+        Note this function previously returned the volume per steradian.
+        To get the old behavior divide by 4*pi
 
         Parameters
         ----------
@@ -352,13 +362,13 @@ class Cosmo:
         Parameters
         ----------
         z: scalar or array
-            The redshift 
+            The redshift
         """
 
         dmpc = self.Dl(0.0, z)
         dpc = dmpc*1.e6
         dm = 5.0*log10(dpc/10.0)
-        return dm      
+        return dm
 
 
     def sigmacritinv(self, zl, zs):
@@ -449,13 +459,13 @@ class Cosmo:
     def Ez_inverse(self, z):
         """
         Integrate kernel 1/E(z) from 0 to z.
-        
+
         1/E(z) is used for distance calculations in FRW.
 
         Parameters
         ----------
         z: scalar or array
-            The redshift 
+            The redshift
         """
 
         if isscalar(z):
